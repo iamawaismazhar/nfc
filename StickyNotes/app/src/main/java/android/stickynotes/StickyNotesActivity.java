@@ -16,7 +16,7 @@
 
 package android.stickynotes;
 
-import android.app.Activity;
+import android.support.v7.app.AppCompatActivity;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.DialogInterface;
@@ -40,7 +40,7 @@ import android.widget.Toast;
 
 import java.io.IOException;
 
-public class StickyNotesActivity extends Activity {
+public class StickyNotesActivity extends AppCompatActivity {
     private static final String TAG = "stickynotes";
     private boolean mResumed = false;
     private boolean mWriteMode = false;
