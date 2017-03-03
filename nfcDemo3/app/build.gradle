@@ -1,13 +1,22 @@
 apply plugin: 'com.android.application'
 
 android {
+<<<<<<< HEAD
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
+=======
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
+>>>>>>> origin/master
 
     defaultConfig {
         applicationId "edu.cs4730.nfcdemo3"
         minSdkVersion 16
+<<<<<<< HEAD
         targetSdkVersion 25
+=======
+        targetSdkVersion 23
+>>>>>>> origin/master
         versionCode 1
         versionName "1.0"
     }
@@ -21,5 +30,9 @@ android {
 }
 
 dependencies {
+<<<<<<< HEAD
     compile 'com.android.support:appcompat-v7:25.2.0'
+=======
+    compile 'com.android.support:support-v4:23.1.1'
+>>>>>>> origin/master
 }
