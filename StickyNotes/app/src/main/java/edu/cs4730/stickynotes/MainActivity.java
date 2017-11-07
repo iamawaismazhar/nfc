@@ -62,13 +62,14 @@ public class MainActivity extends AppCompatActivity {
 
         // Handle all of our received NFC intents in this activity.
         mNfcPendingIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+            new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
 
         // Intent filters for reading a note from a tag or exchanging over p2p.
         IntentFilter ndefDetected = new IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED);
         try {
             ndefDetected.addDataType("text/plain");
         } catch (MalformedMimeTypeException e) {
+            Log.d(TAG, "Failed to addDataType");
         }
         mNdefExchangeFilters = new IntentFilter[]{ndefDetected};
 
@@ -95,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         mResumed = false;
-       // mNfcAdapter.disableForegroundNdefPush(this); //deprecated
+        // mNfcAdapter.disableForegroundNdefPush(this); //deprecated
         // the setNdefPushMessage version understands onPause/onResume, so no need to turn off/on.
     }
 
@@ -143,31 +144,31 @@ public class MainActivity extends AppCompatActivity {
             enableTagWriteMode();
 
             new AlertDialog.Builder(MainActivity.this).setTitle("Touch tag to write")
-                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                        @Override
-                        public void onCancel(DialogInterface dialog) {
-                            disableTagWriteMode();
-                            enableNdefExchangeMode();
-                        }
-                    }).create().show();
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        disableTagWriteMode();
+                        enableNdefExchangeMode();
+                    }
+                }).create().show();
         }
     };
 
     private void promptForContent(final NdefMessage msg) {
         new AlertDialog.Builder(this).setTitle("Replace current content?")
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface arg0, int arg1) {
-                        String body = new String(msg.getRecords()[0].getPayload());
-                        setNoteBody(body);
-                    }
-                })
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface arg0, int arg1) {
+            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface arg0, int arg1) {
+                    String body = new String(msg.getRecords()[0].getPayload());
+                    setNoteBody(body);
+                }
+            })
+            .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface arg0, int arg1) {
 
-                    }
-                }).show();
+                }
+            }).show();
     }
 
     private void setNoteBody(String body) {
@@ -179,9 +180,9 @@ public class MainActivity extends AppCompatActivity {
     private NdefMessage getNoteAsNdef() {
         byte[] textBytes = mNote.getText().toString().getBytes();
         NdefRecord textRecord = new NdefRecord(NdefRecord.TNF_MIME_MEDIA, "text/plain".getBytes(),
-                new byte[]{}, textBytes);
+            new byte[]{}, textBytes);
         return new NdefMessage(new NdefRecord[]{
-                textRecord
+            textRecord
         });
     }
 
@@ -190,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
         NdefMessage[] msgs = null;
         String action = intent.getAction();
         if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(action)
-                || NfcAdapter.ACTION_NDEF_DISCOVERED.equals(action)) {
+            || NfcAdapter.ACTION_NDEF_DISCOVERED.equals(action)) {
             Parcelable[] rawMsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
             if (rawMsgs != null) {
                 Log.d(TAG, "known tag type. (I think)");
@@ -204,10 +205,10 @@ public class MainActivity extends AppCompatActivity {
                 byte[] empty = new byte[]{};
                 NdefRecord record = new NdefRecord(NdefRecord.TNF_UNKNOWN, empty, empty, empty);
                 NdefMessage msg = new NdefMessage(new NdefRecord[]{
-                        record
+                    record
                 });
                 msgs = new NdefMessage[]{
-                        msg
+                    msg
                 };
             }
         } else {
@@ -218,13 +219,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void enableNdefExchangeMode() {
-       // mNfcAdapter.enableForegroundNdefPush(MainActivity.this, getNoteAsNdef());  //deprecated.
+        // mNfcAdapter.enableForegroundNdefPush(MainActivity.this, getNoteAsNdef());  //deprecated.
         mNfcAdapter.setNdefPushMessage(getNoteAsNdef(), MainActivity.this);
         mNfcAdapter.enableForegroundDispatch(this, mNfcPendingIntent, mNdefExchangeFilters, null);
     }
 
     private void disableNdefExchangeMode() {
-       // mNfcAdapter.disableForegroundNdefPush(this);  //deprecated.
+        // mNfcAdapter.disableForegroundNdefPush(this);  //deprecated.
         mNfcAdapter.setNdefPushMessage(null, MainActivity.this);  //turn it off.
         mNfcAdapter.disableForegroundDispatch(this);
     }
@@ -233,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
         mWriteMode = true;
         IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
         mWriteTagFilters = new IntentFilter[]{
-                tagDetected
+            tagDetected
         };
         mNfcAdapter.enableForegroundDispatch(this, mNfcPendingIntent, mWriteTagFilters, null);
     }
@@ -257,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 if (ndef.getMaxSize() < size) {
                     toast("Tag capacity is " + ndef.getMaxSize() + " bytes, message is " + size
-                            + " bytes.");
+                        + " bytes.");
                     return false;
                 }
 
