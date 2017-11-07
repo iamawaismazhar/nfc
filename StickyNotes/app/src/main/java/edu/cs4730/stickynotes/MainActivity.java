@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package android.stickynotes;
+package edu.cs4730.stickynotes;
 
 import android.support.v7.app.AppCompatActivity;
 import android.app.AlertDialog;
@@ -40,7 +39,7 @@ import android.widget.Toast;
 
 import java.io.IOException;
 
-public class StickyNotesActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity {
     private static final String TAG = "stickynotes";
     private boolean mResumed = false;
     private boolean mWriteMode = false;
@@ -51,13 +50,12 @@ public class StickyNotesActivity extends AppCompatActivity {
     IntentFilter[] mWriteTagFilters;
     IntentFilter[] mNdefExchangeFilters;
 
-    /** Called when the activity is first created. */
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        setContentView(R.layout.activity_main);
 
-        setContentView(R.layout.main);
+        mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
         findViewById(R.id.write_tag).setOnClickListener(mTagWriter);
         mNote = ((EditText) findViewById(R.id.note));
         mNote.addTextChangedListener(mTextWatcher);
@@ -70,12 +68,13 @@ public class StickyNotesActivity extends AppCompatActivity {
         IntentFilter ndefDetected = new IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED);
         try {
             ndefDetected.addDataType("text/plain");
-        } catch (MalformedMimeTypeException e) { }
-        mNdefExchangeFilters = new IntentFilter[] { ndefDetected };
+        } catch (MalformedMimeTypeException e) {
+        }
+        mNdefExchangeFilters = new IntentFilter[]{ndefDetected};
 
         // Intent filters for writing to a tag
         IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
-        mWriteTagFilters = new IntentFilter[] { tagDetected };
+        mWriteTagFilters = new IntentFilter[]{tagDetected};
     }
 
     @Override
@@ -96,7 +95,8 @@ public class StickyNotesActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         mResumed = false;
-        mNfcAdapter.disableForegroundNdefPush(this);
+       // mNfcAdapter.disableForegroundNdefPush(this); //deprecated
+        // the setNdefPushMessage version understands onPause/onResume, so no need to turn off/on.
     }
 
     @Override
@@ -129,7 +129,8 @@ public class StickyNotesActivity extends AppCompatActivity {
         @Override
         public void afterTextChanged(Editable arg0) {
             if (mResumed) {
-                mNfcAdapter.enableForegroundNdefPush(StickyNotesActivity.this, getNoteAsNdef());
+                //mNfcAdapter.enableForegroundNdefPush(MainActivity.this, getNoteAsNdef()); //depreciated
+                mNfcAdapter.setNdefPushMessage(getNoteAsNdef(), MainActivity.this);
             }
         }
     };
@@ -141,7 +142,7 @@ public class StickyNotesActivity extends AppCompatActivity {
             disableNdefExchangeMode();
             enableTagWriteMode();
 
-            new AlertDialog.Builder(StickyNotesActivity.this).setTitle("Touch tag to write")
+            new AlertDialog.Builder(MainActivity.this).setTitle("Touch tag to write")
                     .setOnCancelListener(new DialogInterface.OnCancelListener() {
                         @Override
                         public void onCancel(DialogInterface dialog) {
@@ -154,19 +155,19 @@ public class StickyNotesActivity extends AppCompatActivity {
 
     private void promptForContent(final NdefMessage msg) {
         new AlertDialog.Builder(this).setTitle("Replace current content?")
-            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface arg0, int arg1) {
-                    String body = new String(msg.getRecords()[0].getPayload());
-                    setNoteBody(body);
-                }
-            })
-            .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface arg0, int arg1) {
-                    
-                }
-            }).show();
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        String body = new String(msg.getRecords()[0].getPayload());
+                        setNoteBody(body);
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+
+                    }
+                }).show();
     }
 
     private void setNoteBody(String body) {
@@ -178,9 +179,9 @@ public class StickyNotesActivity extends AppCompatActivity {
     private NdefMessage getNoteAsNdef() {
         byte[] textBytes = mNote.getText().toString().getBytes();
         NdefRecord textRecord = new NdefRecord(NdefRecord.TNF_MIME_MEDIA, "text/plain".getBytes(),
-                new byte[] {}, textBytes);
-        return new NdefMessage(new NdefRecord[] {
-            textRecord
+                new byte[]{}, textBytes);
+        return new NdefMessage(new NdefRecord[]{
+                textRecord
         });
     }
 
@@ -192,19 +193,21 @@ public class StickyNotesActivity extends AppCompatActivity {
                 || NfcAdapter.ACTION_NDEF_DISCOVERED.equals(action)) {
             Parcelable[] rawMsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
             if (rawMsgs != null) {
+                Log.d(TAG, "known tag type. (I think)");
                 msgs = new NdefMessage[rawMsgs.length];
                 for (int i = 0; i < rawMsgs.length; i++) {
                     msgs[i] = (NdefMessage) rawMsgs[i];
                 }
             } else {
+                Log.d(TAG, "Unknown tag type.");
                 // Unknown tag type
-                byte[] empty = new byte[] {};
+                byte[] empty = new byte[]{};
                 NdefRecord record = new NdefRecord(NdefRecord.TNF_UNKNOWN, empty, empty, empty);
-                NdefMessage msg = new NdefMessage(new NdefRecord[] {
-                    record
+                NdefMessage msg = new NdefMessage(new NdefRecord[]{
+                        record
                 });
-                msgs = new NdefMessage[] {
-                    msg
+                msgs = new NdefMessage[]{
+                        msg
                 };
             }
         } else {
@@ -215,20 +218,22 @@ public class StickyNotesActivity extends AppCompatActivity {
     }
 
     private void enableNdefExchangeMode() {
-        mNfcAdapter.enableForegroundNdefPush(StickyNotesActivity.this, getNoteAsNdef());
+       // mNfcAdapter.enableForegroundNdefPush(MainActivity.this, getNoteAsNdef());  //deprecated.
+        mNfcAdapter.setNdefPushMessage(getNoteAsNdef(), MainActivity.this);
         mNfcAdapter.enableForegroundDispatch(this, mNfcPendingIntent, mNdefExchangeFilters, null);
     }
 
     private void disableNdefExchangeMode() {
-        mNfcAdapter.disableForegroundNdefPush(this);
+       // mNfcAdapter.disableForegroundNdefPush(this);  //deprecated.
+        mNfcAdapter.setNdefPushMessage(null, MainActivity.this);  //turn it off.
         mNfcAdapter.disableForegroundDispatch(this);
     }
 
     private void enableTagWriteMode() {
         mWriteMode = true;
         IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
-        mWriteTagFilters = new IntentFilter[] {
-            tagDetected
+        mWriteTagFilters = new IntentFilter[]{
+                tagDetected
         };
         mNfcAdapter.enableForegroundDispatch(this, mNfcPendingIntent, mWriteTagFilters, null);
     }
